@@ -11,7 +11,8 @@ let gulp = require("gulp"),
     del = require("del"),
     cache = require("gulp-cache"),
     babel = require("gulp-babel"),
-    autoprefixer = require("gulp-autoprefixer");
+    autoprefixer = require("gulp-autoprefixer"),
+    browserify = require("gulp-browserify");
 
 gulp.task("sass", () => {
     return gulp.src("src/sass/main.sass")
@@ -35,13 +36,22 @@ gulp.task("browser-sync", () => {
 });
 
 gulp.task("babel", () => {
-    return gulp.src("src/js/main.ES6.js")
+    return gulp.src("src/es6/**/*.js")
         .pipe(babel())
-        .pipe(rename("main.js"))
         .pipe(gulp.dest("src/js"))
         /*.pipe(uglify())
         .pipe(rename({suffix: ".min"}))
         .pipe(gulp.dest("src/js"))*/;
+});
+
+gulp.task("browserify",()=>{
+    return gulp.src("src/js/main.js")
+        .pipe(browserify(browserify({
+            insertGlobals : true,
+            debug : !gulp.env.production
+        })))
+        .pipe(rename("bundle.js"))
+        .pipe(gulp.dest("src"));
 });
 
 gulp.task("js-libs",()=>{
@@ -50,10 +60,11 @@ gulp.task("js-libs",()=>{
         .pipe(gulp.dest("src/js"));
 });
 
-gulp.task("watch",["babel", "sass", "js-libs", "browser-sync"], () => {
-    gulp.watch("src/js/main.ES6.js", ["babel", browserSync.reload]);
-    gulp.watch("src/sass/main.sass", ["sass", browserSync.reload]);
+gulp.task("watch",["babel", "browserify", "sass", "js-libs", "browser-sync"], () => {
+    gulp.watch("src/es6/**/*.js", ["babel"]);
+    gulp.watch("src/sass/**/*", ["sass", browserSync.reload]);
     gulp.watch("src/index.html", browserSync.reload);
+    gulp.watch("src/js/main.js", ["browserify", browserSync.reload]);
 });
 
 gulp.task("default", ["watch"]);
