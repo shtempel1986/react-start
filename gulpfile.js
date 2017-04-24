@@ -46,10 +46,7 @@ gulp.task("babel", () => {
 
 gulp.task("browserify",()=>{
     return gulp.src("src/js/main.js")
-        .pipe(browserify(browserify({
-            insertGlobals : true,
-            debug : !gulp.env.production
-        })))
+        .pipe(browserify(browserify({})))
         .pipe(rename("bundle.js"))
         .pipe(gulp.dest("src"));
 });
@@ -61,10 +58,33 @@ gulp.task("js-libs",()=>{
 });
 
 gulp.task("watch",["babel", "browserify", "sass", "js-libs", "browser-sync"], () => {
-    gulp.watch("src/es6/**/*.js", ["babel"]);
+    gulp.watch("src/es6/**/*.js", ["babel", "browserify", browserSync.reload]);
     gulp.watch("src/sass/**/*", ["sass", browserSync.reload]);
     gulp.watch("src/index.html", browserSync.reload);
-    gulp.watch("src/js/main.js", ["browserify", browserSync.reload]);
 });
 
 gulp.task("default", ["watch"]);
+
+//Discover component
+
+gulp.task("browserify-discovery", ["babel"], () => {
+    return gulp.src("src/js/main-discovery.js")
+        .pipe(browserify())
+        .pipe(rename("bundle-discovery.js"))
+        .pipe(gulp.dest("src"));
+});
+
+
+
+gulp.task("discovery", ["babel", "browserify-discovery", "sass"], () => {
+    discoveryBS.init({
+        server: {
+            baseDir: "src/",
+            index: "discovery.html"
+        },
+        notify: false
+    });
+    gulp.watch("src/es6/**/*.js", ["browserify-discovery", discoveryBS.reload]);
+    gulp.watch("src/sass/**/*", ["sass", discoveryBS.reload]);
+    gulp.watch("src/discovery.html", discoveryBS.reload);
+});
