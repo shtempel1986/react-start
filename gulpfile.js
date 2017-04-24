@@ -3,7 +3,7 @@
  */
 let gulp = require("gulp"),
     sass = require("gulp-sass"),
-    browserSync = require("browser-sync"),
+    browserSync = require("browser-sync").create("default"),
     concat = require("gulp-concat"),
     uglify = require("gulp-uglifyjs"),
     cssnano = require("gulp-cssnano"),
@@ -12,10 +12,11 @@ let gulp = require("gulp"),
     cache = require("gulp-cache"),
     babel = require("gulp-babel"),
     autoprefixer = require("gulp-autoprefixer"),
-    browserify = require("gulp-browserify");
+    browserify = require("gulp-browserify"),
+    discoveryBS = require("browser-sync").create("discovery");
 
 gulp.task("sass", () => {
-    return gulp.src("src/sass/main.sass")
+    return gulp.src("src/sass/**/*.sass")
         .pipe(sass())
         .pipe(autoprefixer([
             "last 15 version", ">1%", "ie 8", "ie 7"
@@ -27,7 +28,7 @@ gulp.task("sass", () => {
 });
 
 gulp.task("browser-sync", () => {
-    browserSync({
+    browserSync.init({
         server: {
             baseDir: "src"
         },
@@ -82,7 +83,8 @@ gulp.task("discovery", ["babel", "browserify-discovery", "sass"], () => {
             baseDir: "src/",
             index: "discovery.html"
         },
-        notify: false
+        notify: false,
+        port: 3002
     });
     gulp.watch("src/es6/**/*.js", ["browserify-discovery", discoveryBS.reload]);
     gulp.watch("src/sass/**/*", ["sass", discoveryBS.reload]);
